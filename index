@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🌍 Mi Huella de Carbono</title>
+<style>
+  :root{
+    --verde:#2e8b57;
+    --verde-claro:#a8e6b0;
+    --amarillo:#f4c542;
+    --naranja:#f28c28;
+    --rojo:#e2504f;
+    --azul:#3a7ca5;
+    --fondo:#eaf6f0;
+    --texto:#264d3b;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family: 'Trebuchet MS', 'Segoe UI', sans-serif;
+    background: linear-gradient(180deg,#d7f0e3 0%, #eaf6f0 200px, #eaf6f0 100%);
+    color: var(--texto);
+    padding-bottom: 40px;
+  }
+  header{
+    text-align:center;
+    padding: 22px 14px 10px;
+  }
+  header h1{
+    margin:0;
+    font-size: clamp(1.4rem, 4vw, 2.2rem);
+    color: var(--verde);
+  }
+  header p{
+    margin: 6px auto 0;
+    max-width: 560px;
+    font-size: 0.95rem;
+    color:#3d5f4f;
+  }
+  .layout{
+    max-width: 950px;
+    margin: 0 auto;
+    padding: 10px 14px;
+    display:grid;
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+  @media (min-width: 880px){
+    .layout{
+      grid-template-columns: 1.1fr 0.9fr;
+      align-items:start;
+    }
+  }
+  .card{
+    background:#fff;
+    border-radius: 18px;
+    box-shadow: 0 4px 14px rgba(38,77,59,0.12);
+    padding: 18px 18px 20px;
+  }
+  .categoria{
+    margin-bottom: 22px;
+  }
+  .categoria:last-child{margin-bottom:0;}
+  .categoria h2{
+    font-size: 1.05rem;
+    margin: 0 0 4px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    color: var(--azul);
+  }
+  .categoria .sub{
+    font-size:0.82rem;
+    color:#6b7d73;
+    margin:0 0 10px;
+  }
+  .opciones{
+    display:grid;
+    gap:8px;
+  }
+  .opcion{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    border: 2px solid #e3ece6;
+    border-radius: 12px;
+    padding: 9px 12px;
+    cursor:pointer;
+    transition: all .15s ease;
+    background:#fbfdfc;
+  }
+  .opcion:hover{
+    border-color: var(--verde-claro);
+    background:#f2fbf5;
+  }
+  .opcion input{
+    accent-color: var(--verde);
+    width:18px;
+    height:18px;
+    flex-shrink:0;
+  }
+  .opcion.selected{
+    border-color: var(--verde);
+    background: #eafaf0;
+  }
+  .opcion .emoji{
+    font-size:1.3rem;
+    width: 28px;
+    text-align:center;
+  }
+  .opcion .label{
+    flex:1;
+    font-size:0.92rem;
+    line-height:1.25;
+  }
+  .opcion .valor{
+    font-size:0.72rem;
+    font-weight:bold;
+    color:#8a9a90;
+    white-space:nowrap;
+  }
+
+  /* Panel resultado */
+  .resultado{
+    position:sticky;
+    top:12px;
+  }
+  .gauge-wrap{
+    text-align:center;
+  }
+  .gauge{
+    position:relative;
+    width: 220px;
+    height: 120px;
+    margin: 6px auto 4px;
+  }
+  .gauge svg{width:100%;height:100%;}
+  .aguja{
+    position:absolute;
+    left:50%; bottom:6px;
+    width: 4px; height: 92px;
+    background: #2c2c2c;
+    border-radius: 4px;
+    transform-origin: bottom center;
+    transform: translateX(-50%) rotate(-90deg);
+    transition: transform 0.6s cubic-bezier(.4,1.6,.5,1);
+  }
+  .gauge-centro{
+    position:absolute;
+    left:50%; bottom:0;
+    width:16px;height:16px;
+    background:#2c2c2c;
+    border-radius:50%;
+    transform:translateX(-50%);
+  }
+  .total-numero{
+    font-size: 2.1rem;
+    font-weight:bold;
+    margin: 4px 0 0;
+  }
+  .total-unidad{
+    font-size:0.8rem;
+    color:#6b7d73;
+    margin-bottom: 6px;
+  }
+  .nivel-texto{
+    display:inline-block;
+    padding: 5px 16px;
+    border-radius: 999px;
+    font-weight:bold;
+    font-size:0.9rem;
+    color:#fff;
+    margin-bottom: 4px;
+  }
+  .escala-leyenda{
+    display:flex;
+    justify-content:space-between;
+    font-size:0.68rem;
+    color:#8a9a90;
+    max-width:220px;
+    margin: 0 auto 14px;
+  }
+  .comparacion{
+    font-size:0.85rem;
+    text-align:center;
+    background: var(--fondo);
+    border-radius: 12px;
+    padding: 10px 12px;
+    margin-top: 8px;
+    line-height:1.4;
+  }
+  .arbolitos{
+    font-size:1.1rem;
+    text-align:center;
+    margin-top:6px;
+  }
+
+  .consejos h3{
+    font-size:0.95rem;
+    color: var(--verde);
+    margin: 18px 0 8px;
+    border-top: 1px dashed #cfe4d7;
+    padding-top: 14px;
+  }
+  .consejo{
+    display:flex;
+    gap:8px;
+    align-items:flex-start;
+    font-size:0.85rem;
+    background: #fff8e8;
+    border-left: 4px solid var(--amarillo);
+    border-radius: 8px;
+    padding: 8px 10px;
+    margin-bottom: 8px;
+    line-height:1.35;
+  }
+  .consejo .ahorro{
+    font-weight:bold;
+    color: var(--verde);
+  }
+  .sin-consejos{
+    text-align:center;
+    font-size:0.85rem;
+    color: var(--verde);
+    background:#eafaf0;
+    border-radius:10px;
+    padding:12px;
+    font-weight:bold;
+  }
+  footer{
+    text-align:center;
+    font-size: 0.75rem;
+    color:#8a9a90;
+    margin-top: 24px;
+    padding: 0 14px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🌍 Mi Huella de Carbono</h1>
+  <p>Elegí las opciones que más se parecen a tu día. Vas a ver cuánto CO₂ generás y qué podés cambiar para cuidar el planeta. 🌱</p>
+</header>
+
+<div class="layout">
+
+  <!-- PREGUNTAS -->
+  <div class="card">
+
+    <div class="categoria" data-cat="transporte">
+      <h2>🚌 ¿Cómo vas a la escuela?</h2>
+      <p class="sub">Trayecto ida y vuelta estimado en 8 km por día</p>
+      <div class="opciones">
+        <label class="opcion"><input type="radio" name="transporte" value="0.4" data-emoji="🚶"><span class="emoji">🚶</span><span class="label">Caminando</span><span class="valor">0.4 kg</span></label>
+        <label class="opcion"><input type="radio" name="transporte" value="0.24" data-emoji="🚲"><span class="emoji">🚲</span><span class="label">En bici</span><span class="valor">0.24 kg</span></label>
+        <label class="opcion"><input type="radio" name="transporte" value="0.24" data-emoji="🚇"><span class="emoji">🚇</span><span class="label">Subte o tren</span><span class="valor">0.24 kg</span></label>
+        <label class="opcion"><input type="radio" name="transporte" value="0.72" data-emoji="🚌"><span class="emoji">🚌</span><span class="label">Colectivo</span><span class="valor">0.72 kg</span></label>
+        <label class="opcion"><input type="radio" name="transporte" value="0.84" data-emoji="🚙"><span class="emoji">🚙</span><span class="label">Auto compartido (con otras personas)</span><span class="valor">0.84 kg</span></label>
+        <label class="opcion"><input type="radio" name="transporte" value="1.68" data-emoji="🚗" checked><span class="emoji">🚗</span><span class="label">Auto (solo con la familia)</span><span class="valor">1.68 kg</span></label>
+      </div>
+    </div>
+
+    <div class="categoria" data-cat="comida">
+      <h2>🍽️ ¿Qué comiste hoy, mayormente?</h2>
+      <p class="sub">Pensá en el almuerzo y la cena</p>
+      <div class="opciones">
+        <label class="opcion"><input type="radio" name="comida" value="1"><span class="emoji">🥦</span><span class="label">Comida vegetariana (verduras, legumbres)</span><span class="valor">1 kg</span></label>
+        <label class="opcion"><input type="radio" name="comida" value="1.5"><span class="emoji">🍪</span><span class="label">Galletitas / sándwich</span><span class="valor">1.5 kg</span></label>
+        <label class="opcion"><input type="radio" name="comida" value="2"><span class="emoji">🍗</span><span class="label">Con pollo o pescado</span><span class="valor">2 kg</span></label>
+        <label class="opcion"><input type="radio" name="comida" value="6" checked><span class="emoji">🥩</span><span class="label">Con carne vacuna</span><span class="valor">6 kg</span></label>
+        <label class="opcion"><input type="radio" name="comida" value="7.5"><span class="emoji">🍔</span><span class="label">Comida rápida / procesada</span><span class="valor">7.5 kg</span></label>
+      </div>
+    </div>
+
+    <div class="categoria" data-cat="energia">
+      <h2>💡 ¿Cómo usás la energía en tu casa?</h2>
+      <p class="sub">Luces, cargadores, tele, aire acondicionado...</p>
+      <div class="opciones">
+        <label class="opcion"><input type="radio" name="energia" value="0.45"><span class="emoji">🌤️</span><span class="label">Apago todo lo que no uso</span><span class="valor">0.45 kg</span></label>
+        <label class="opcion"><input type="radio" name="energia" value="1.35" checked><span class="emoji">💡</span><span class="label">A veces me olvido de apagar luces</span><span class="valor">1.35 kg</span></label>
+        <label class="opcion"><input type="radio" name="energia" value="2.7"><span class="emoji">📺</span><span class="label">Uso mucho la tele, la play, el aire o el ventilador</span><span class="valor">2.7 kg</span></label>
+      </div>
+    </div>
+
+    <div class="categoria" data-cat="residuos">
+      <h2>🗑️ ¿Qué hacés con la basura?</h2>
+      <p class="sub">Pensá en botellas, envases, papeles. Podés marcar más de una opción: si hacés varias cosas, se suman.</p>
+      <div class="opciones">
+        <label class="opcion"><input type="checkbox" name="residuos" value="0.3"><span class="emoji">♻️</span><span class="label">Separo y reciclo</span><span class="valor">0.3 kg</span></label>
+        <label class="opcion"><input type="checkbox" name="residuos" value="1" checked><span class="emoji">🧴</span><span class="label">Uso cosas descartables (botellas, bolsas)</span><span class="valor">1 kg</span></label>
+        <label class="opcion"><input type="checkbox" name="residuos" value="1.8"><span class="emoji">🗑️</span><span class="label">Tiro todo junto, sin separar</span><span class="valor">1.8 kg</span></label>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RESULTADO -->
+  <div class="card resultado">
+    <div class="gauge-wrap">
+      <h2 style="margin:0 0 4px; font-size:1rem; color:var(--verde);">Tu huella de hoy</h2>
+      <div class="gauge">
+        <svg viewBox="0 0 220 120">
+          <path d="M 15 110 A 95 95 0 0 1 73 24" fill="none" stroke="#4caf72" stroke-width="18" stroke-linecap="round"/>
+          <path d="M 73 24 A 95 95 0 0 1 147 24" fill="none" stroke="#f4c542" stroke-width="18" stroke-linecap="round"/>
+          <path d="M 147 24 A 95 95 0 0 1 205 110" fill="none" stroke="#e2504f" stroke-width="18" stroke-linecap="round"/>
+        </svg>
+        <div class="aguja" id="aguja"></div>
+        <div class="gauge-centro"></div>
+      </div>
+      <div class="escala-leyenda"><span>🌱 Bajo</span><span>🌤️ Medio</span><span>🔥 Alto</span></div>
+      <div class="total-numero" id="totalNumero">0</div>
+      <div class="total-unidad">kg de CO₂ hoy</div>
+      <div class="nivel-texto" id="nivelTexto">-</div>
+
+      <div class="comparacion" id="comparacion"></div>
+      <div class="arbolitos" id="arbolitos"></div>
+    </div>
+
+    <div class="consejos">
+      <h3>🌱 ¿Qué podés cambiar?</h3>
+      <div id="listaConsejos"></div>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <p style="max-width:700px;margin:0 auto 6px;">Los valores son estimaciones simplificadas para uso educativo, basadas en promedios globales y trayectos/consumos de referencia, no una medición exacta de tu vida real.</p>
+  <details style="max-width:700px;margin:0 auto;text-align:left;">
+    <summary style="cursor:pointer;font-weight:bold;color:var(--verde);">📚 Ver fuentes de los datos</summary>
+    <ul style="font-size:0.72rem;line-height:1.5;color:#6b7d73;">
+      <li><b>Transporte:</b> emisión por pasajero-km — auto ≈240 g/km (Defra/STAP, UK), colectivo ≈90-93 g/km (Agencia Federal de Medio Ambiente, Alemania, 2022), subte/tren urbano ≈30 g/km (referencia Londres, vía Goclimate), caminar/bici ≈0.03-0.05 kg/km por el alimento extra necesario para esa energía (Neves &amp; Wolf, <i>Scientific Reports</i>, 2020). Se asumió un trayecto ida y vuelta de 8 km/día a la escuela.</li>
+      <li><b>Comida:</b> kg de CO₂ por kg de alimento — carne vacuna ≈60 kg/kg, pollo ≈6-10 kg/kg, legumbres &lt;2 kg/kg (Poore &amp; Nemecek, 2018, <i>Science</i>, vía Our World in Data). Se aplicó una porción de referencia de ~150 g para pasar a "por comida".</li>
+      <li><b>Energía en casa:</b> factor de emisión de la Red Argentina de Energía Eléctrica = 0.4507 kg CO₂/kWh (Secretaría de Energía de la Nación), multiplicado por un consumo diario estimado según el hábito (1, 3 o 6 kWh/día).</li>
+      <li><b>Residuos:</b> valores aproximados de referencia general; a diferencia de las otras categorías, no están basados en una única fuente oficial y deben tomarse solo como orientativos. En esta categoría se puede marcar más de una opción, y los valores se suman.</li>
+      <li><b>Auto compartido:</b> estimado como aproximadamente la mitad del valor del auto con un solo pasajero, al repartirse las emisiones entre más personas.</li>
+    </ul>
+  </details>
+</footer>
+
+<script>
+const categorias = {
+  transporte: {
+    icono: "🚌",
+    nombre: "el transporte",
+    opciones: {
+      "0.4": {texto:"ir caminando", ahorro:null},
+      "0.24": {texto:"ir en bici o en subte/tren", ahorro:null},
+      "0.72": {texto:"ir en colectivo en vez de auto", ahorro:null},
+      "0.84": {texto:"ir en bici, caminando o en transporte público en vez de auto compartido", ahorro:0.6},
+      "1.68": {texto:"ir en bici, caminando, en transporte público o compartiendo el auto con otras personas", ahorro:1.44}
+    }
+  },
+  comida: {
+    icono: "🍽️",
+    nombre: "la comida",
+    opciones: {
+      "1": {texto:"comer vegetariano", ahorro:null},
+      "1.5": {texto:"comer galletitas o sándwich liviano", ahorro:null},
+      "2": {texto:"comer pollo o pescado en vez de carne vacuna", ahorro:null},
+      "6": {texto:"elegir pollo, pescado o legumbres en vez de carne vacuna un par de veces por semana", ahorro:4},
+      "7.5": {texto:"cambiar la comida rápida por algo casero", ahorro:5.5}
+    }
+  },
+  energia: {
+    icono: "💡",
+    nombre: "la energía en casa",
+    opciones: {
+      "0.45": {texto:"apagar lo que no uses", ahorro:null},
+      "1.35": {texto:"acordarte de apagar luces y aparatos que no usás", ahorro:0.9},
+      "2.7": {texto:"usar menos tiempo la tele, la consola o el aire acondicionado", ahorro:1.35}
+    }
+  },
+  residuos: {
+    icono: "🗑️",
+    nombre: "la basura",
+    opciones: {
+      "0.3": {texto:"separar y reciclar", ahorro:null},
+      "1": {texto:"usar botella y bolsa reutilizable en vez de descartables", ahorro:0.7},
+      "1.8": {texto:"empezar a separar la basura para reciclar", ahorro:1.5}
+    }
+  }
+};
+
+function getSeleccionados(cat){
+  return Array.from(document.getElementsByName(cat)).filter(i=>i.checked);
+}
+
+function marcarSeleccionVisual(){
+  document.querySelectorAll('.opcion').forEach(op=>{
+    const input = op.querySelector('input');
+    op.classList.toggle('selected', input.checked);
+  });
+}
+
+function calcular(){
+  marcarSeleccionVisual();
+  let total = 0;
+  const consejos = [];
+
+  Object.keys(categorias).forEach(cat=>{
+    const seleccionados = getSeleccionados(cat);
+    if(seleccionados.length === 0) return;
+    seleccionados.forEach(sel=>{
+      const val = parseFloat(sel.value);
+      total += val;
+      const info = categorias[cat].opciones[sel.value];
+      if(info && info.ahorro){
+        consejos.push({
+          icono: categorias[cat].icono,
+          texto: `En ${categorias[cat].nombre}: probá ${info.texto}.`,
+          ahorro: info.ahorro
+        });
+      }
+    });
+  });
+
+  total = Math.round(total*10)/10;
+  document.getElementById('totalNumero').textContent = total;
+
+  // escala: 0 a ~14 kg aprox
+  const min = 2, max = 14.7;
+  let pct = (total - min) / (max - min);
+  pct = Math.max(0, Math.min(1, pct));
+  const angulo = -90 + pct*180;
+  document.getElementById('aguja').style.transform = `translateX(-50%) rotate(${angulo}deg)`;
+
+  const nivelEl = document.getElementById('nivelTexto');
+  let color, texto;
+  if(total < 5.9){ color = "#2e8b57"; texto = "🌱 Huella baja"; }
+  else if(total < 9.8){ color = "#f4a127"; texto = "🌤️ Huella media"; }
+  else { color = "#e2504f"; texto = "🔥 Huella alta"; }
+  nivelEl.style.background = color;
+  nivelEl.textContent = texto;
+
+  const arbolesNecesarios = Math.max(1, Math.round(total / 1.5));
+  document.getElementById('arbolitos').textContent = "🌳".repeat(Math.min(arbolesNecesarios,10)) +
+    ` (harían falta ~${arbolesNecesarios} árboles absorbiendo CO₂ todo el día para compensar esto)`;
+
+  const comparaciones = [
+    {max:5.9, texto:"¡Genial! Tu huella de hoy es baja, casi como cargar el celular todo el día. 📱"},
+    {max:9.8, texto:"Tu huella de hoy es parecida a dejar la tele prendida casi todo el día. 📺"},
+    {max:100, texto:"Tu huella de hoy es como manejar un auto por varios kilómetros. 🚗💨"}
+  ];
+  const comp = comparaciones.find(c=>total<c.max);
+  document.getElementById('comparacion').textContent = comp.texto;
+
+  // consejos
+  const lista = document.getElementById('listaConsejos');
+  lista.innerHTML = "";
+  if(consejos.length === 0){
+    lista.innerHTML = `<div class="sin-consejos">🏆 ¡Excelente! Ya estás eligiendo las opciones que menos CO₂ generan.</div>`;
+  } else {
+    consejos.sort((a,b)=>b.ahorro-a.ahorro);
+    consejos.forEach(c=>{
+      const div = document.createElement('div');
+      div.className = "consejo";
+      div.innerHTML = `<span>${c.icono}</span><span>${c.texto} <span class="ahorro">Podrías ahorrar ~${c.ahorro} kg de CO₂.</span></span>`;
+      lista.appendChild(div);
+    });
+  }
+}
+
+document.querySelectorAll('input[type=radio], input[type=checkbox]').forEach(r=>{
+  r.addEventListener('change', calcular);
+});
+
+calcular();
+</script>
+
+</body>
+</html>
